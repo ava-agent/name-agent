@@ -1,0 +1,66 @@
+"use client";
+
+import { cn } from "@/lib/utils";
+
+interface VoiceButtonProps {
+  isListening: boolean;
+  supported: boolean;
+  onClick: () => void;
+  size?: "sm" | "md";
+  className?: string;
+  transcript?: string;
+}
+
+export function VoiceButton({
+  isListening,
+  supported,
+  onClick,
+  size = "sm",
+  className,
+  transcript,
+}: VoiceButtonProps) {
+  if (!supported) return null;
+
+  const sizeClasses = size === "sm" ? "h-10 w-10" : "h-16 w-16";
+  const iconSize = size === "sm" ? 16 : 28;
+
+  return (
+    <div className={cn("flex flex-col items-center gap-1.5", className)}>
+      <button
+        type="button"
+        onClick={onClick}
+        className={cn(
+          "flex items-center justify-center rounded-full transition-all active:scale-95",
+          sizeClasses,
+          isListening
+            ? "bg-red-500 text-white shadow-lg shadow-red-500/30 animate-pulse"
+            : "bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md shadow-orange-500/20 hover:shadow-lg hover:shadow-orange-500/30"
+        )}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={iconSize}
+          height={iconSize}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+          <line x1="12" x2="12" y1="19" y2="22" />
+        </svg>
+      </button>
+      {isListening && transcript && (
+        <span className="max-w-[200px] truncate text-xs text-orange-600">
+          {transcript}
+        </span>
+      )}
+      {isListening && !transcript && (
+        <span className="text-xs text-red-500">聆听中...</span>
+      )}
+    </div>
+  );
+}
