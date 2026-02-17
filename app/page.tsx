@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -7,16 +8,25 @@ import { useFlowStore } from "@/stores/flow-store";
 
 export default function HomePage() {
   const router = useRouter();
-  const resetFlow = useFlowStore((s) => s.resetFlow);
+  const { resetFlow, updateContext } = useFlowStore();
+  const [quickSurname, setQuickSurname] = useState("");
 
   const handleStart = () => {
     resetFlow();
     router.push("/flow");
   };
 
+  const handleQuickGenerate = () => {
+    const surname = quickSurname.trim();
+    if (!surname) return;
+    resetFlow();
+    updateContext("surname", surname);
+    router.push("/result");
+  };
+
   return (
     <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-8">
-      {/* 背景装饰 */}
+      {/* Background */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-gradient-to-br from-orange-200/40 to-amber-100/30 blur-3xl" />
         <div className="absolute -bottom-32 -left-20 h-80 w-80 rounded-full bg-gradient-to-tr from-amber-200/30 to-orange-100/20 blur-3xl" />
@@ -26,7 +36,7 @@ export default function HomePage() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="relative z-10 text-center"
+        className="relative z-10 w-full text-center"
       >
         {/* Logo */}
         <motion.div
@@ -39,14 +49,12 @@ export default function HomePage() {
         </motion.div>
 
         {/* Title */}
-        <h1 className="mb-2 text-3xl font-bold tracking-tight">
-          AI 起名
-        </h1>
+        <h1 className="mb-2 text-3xl font-bold tracking-tight">AI 起名</h1>
         <p className="mb-10 text-base text-muted-foreground">
           让每个名字都有故事
         </p>
 
-        {/* Description */}
+        {/* Steps */}
         <div className="mb-10 space-y-4">
           {[
             { icon: "1", text: "回答几个简单的问题", delay: 0.3 },
@@ -63,7 +71,9 @@ export default function HomePage() {
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-amber-500 text-sm font-bold text-white">
                 {item.icon}
               </div>
-              <span className="text-sm text-muted-foreground">{item.text}</span>
+              <span className="text-sm text-muted-foreground">
+                {item.text}
+              </span>
             </motion.div>
           ))}
         </div>
@@ -83,12 +93,44 @@ export default function HomePage() {
           </Button>
         </motion.div>
 
-        {/* Features */}
+        {/* Quick generate */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.8 }}
-          className="mt-12 grid grid-cols-3 gap-3"
+          className="mt-6"
+        >
+          <div className="flex items-center gap-2">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs text-muted-foreground/60">
+              或者，快速生成
+            </span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+          <div className="mt-3 flex gap-2">
+            <input
+              value={quickSurname}
+              onChange={(e) => setQuickSurname(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleQuickGenerate()}
+              placeholder="输入姓氏"
+              className="h-11 flex-1 rounded-xl border-2 border-border bg-white/80 px-4 text-base transition-colors focus:border-orange-400 focus:outline-none"
+            />
+            <Button
+              onClick={handleQuickGenerate}
+              disabled={!quickSurname.trim()}
+              className="h-11 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-5 font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98] disabled:opacity-40"
+            >
+              马上起名
+            </Button>
+          </div>
+        </motion.div>
+
+        {/* Features */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 1.0 }}
+          className="mt-10 grid grid-cols-3 gap-3"
         >
           {[
             { icon: "🎴", label: "卡片交互" },

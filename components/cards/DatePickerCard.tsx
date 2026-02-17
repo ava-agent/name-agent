@@ -55,6 +55,7 @@ export function DatePickerCard({ config }: { config: CardConfig }) {
         />
         <VoiceButton
           isListening={voice.isListening}
+          isProcessing={voice.isProcessing}
           supported={voice.supported}
           onClick={voice.toggle}
           transcript={voice.transcript}

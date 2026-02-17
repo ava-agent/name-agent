@@ -24,6 +24,7 @@ export function VoiceInputCard({ config }: { config: CardConfig }) {
       <div className="flex justify-center py-2">
         <VoiceButton
           isListening={voice.isListening}
+          isProcessing={voice.isProcessing}
           supported={voice.supported}
           onClick={voice.toggle}
           size="md"

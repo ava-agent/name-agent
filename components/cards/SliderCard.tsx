@@ -53,6 +53,7 @@ export function SliderCard({ config }: { config: CardConfig }) {
       <div className="flex justify-center">
         <VoiceButton
           isListening={voice.isListening}
+          isProcessing={voice.isProcessing}
           supported={voice.supported}
           onClick={voice.toggle}
           transcript={voice.transcript}
