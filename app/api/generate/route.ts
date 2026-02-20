@@ -5,6 +5,13 @@ import { UserContext, GeneratedName } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
   try {
+    if (!process.env.ZHIPU_API_KEY) {
+      return NextResponse.json(
+        { error: "服务未配置 API Key，请联系管理员" },
+        { status: 500 }
+      );
+    }
+
     const { context } = (await req.json()) as { context: Partial<UserContext> };
 
     if (!context.surname) {
@@ -17,11 +24,19 @@ export async function POST(req: NextRequest) {
     const client = getAIClient();
     const prompt = buildPrompt(context);
 
-    const response = await client.chat.completions.create({
-      model: "glm-4",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.8,
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+
+    const response = await client.chat.completions.create(
+      {
+        model: "glm-4",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.8,
+      },
+      { signal: controller.signal }
+    );
+
+    clearTimeout(timeout);
 
     const content = response.choices[0]?.message?.content || "";
 

@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
+    if (!process.env.ZHIPU_API_KEY) {
+      return NextResponse.json(
+        { error: "服务未配置 API Key" },
+        { status: 500 }
+      );
+    }
+
     const formData = await req.formData();
     const audioFile = formData.get("audio") as File | null;
 
@@ -18,6 +25,9 @@ export async function POST(req: NextRequest) {
     zhipuForm.append("model", "glm-asr");
     zhipuForm.append("file", blob, audioFile.name || "recording.webm");
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
     const response = await fetch(
       "https://open.bigmodel.cn/api/paas/v4/audio/transcriptions",
       {
@@ -26,8 +36,11 @@ export async function POST(req: NextRequest) {
           Authorization: `Bearer ${process.env.ZHIPU_API_KEY}`,
         },
         body: zhipuForm,
+        signal: controller.signal,
       }
     );
+
+    clearTimeout(timeout);
 
     if (!response.ok) {
       const errText = await response.text();

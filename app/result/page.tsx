@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, MutableRefObject } from "react";
 import {
   motion,
   AnimatePresence,
@@ -13,6 +13,8 @@ import { useRouter } from "next/navigation";
 import { useFlowStore } from "@/stores/flow-store";
 import { GeneratedName } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+
+type SwipeTriggerFn = (direction: "left" | "right") => void;
 
 /* ─────────── Name Card Content (shared between swipe & summary) ─────────── */
 
@@ -126,11 +128,13 @@ function SwipeableCard({
   surname,
   index,
   onSwipeComplete,
+  swipeTriggerRef,
 }: {
   name: GeneratedName;
   surname: string;
   index: number;
   onSwipeComplete: (direction: "left" | "right") => void;
+  swipeTriggerRef: MutableRefObject<SwipeTriggerFn | null>;
 }) {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-250, 250], [-18, 18]);
@@ -169,7 +173,7 @@ function SwipeableCard({
     }
   };
 
-  // Button-triggered swipe
+  // Button-triggered swipe (exposed via ref to parent)
   const triggerSwipe = useCallback(
     async (direction: "left" | "right") => {
       if (swiping.current) return;
@@ -183,14 +187,10 @@ function SwipeableCard({
     [x, onSwipeComplete]
   );
 
-  // Expose triggerSwipe via ref
   useEffect(() => {
-    (window as unknown as Record<string, unknown>).__swipeTrigger =
-      triggerSwipe;
-    return () => {
-      delete (window as unknown as Record<string, unknown>).__swipeTrigger;
-    };
-  }, [triggerSwipe]);
+    swipeTriggerRef.current = triggerSwipe;
+    return () => { swipeTriggerRef.current = null; };
+  }, [triggerSwipe, swipeTriggerRef]);
 
   return (
     <motion.div
@@ -258,22 +258,23 @@ function StackCard({
 
 /* ─────────── Loading Animation ─────────── */
 
+const LOADING_TIPS = [
+  "翻阅古诗词典...",
+  "参考五行八字...",
+  "融合家庭背景...",
+  "斟酌每一个字...",
+  "寻找最美的寓意...",
+];
+
 function LoadingAnimation() {
-  const tips = [
-    "翻阅古诗词典...",
-    "参考五行八字...",
-    "融合家庭背景...",
-    "斟酌每一个字...",
-    "寻找最美的寓意...",
-  ];
   const [tipIndex, setTipIndex] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setTipIndex((i) => (i + 1) % tips.length);
+      setTipIndex((i) => (i + 1) % LOADING_TIPS.length);
     }, 2000);
     return () => clearInterval(interval);
-  }, [tips.length]);
+  }, []);
 
   return (
     <div className="relative flex min-h-dvh flex-col items-center justify-center px-8">
@@ -298,7 +299,7 @@ function LoadingAnimation() {
         </motion.div>
 
         <div className="mb-6 flex gap-2">
-          {tips.map((_, i) => (
+          {LOADING_TIPS.map((_, i) => (
             <motion.div
               key={i}
               className="h-2 rounded-full"
@@ -319,7 +320,7 @@ function LoadingAnimation() {
             exit={{ opacity: 0, y: -10 }}
             className="text-center text-base text-muted-foreground"
           >
-            {tips[tipIndex]}
+            {LOADING_TIPS[tipIndex]}
           </motion.p>
         </AnimatePresence>
       </div>
@@ -467,6 +468,7 @@ export default function ResultPage() {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [error, setError] = useState("");
+  const swipeTriggerRef = useRef<SwipeTriggerFn | null>(null);
   const contextRef = useRef(context);
   contextRef.current = context;
   const hasFetched = useRef(false);
@@ -520,14 +522,8 @@ export default function ResultPage() {
   // Button swipe triggers
   const handleButtonSwipe = useCallback(
     (direction: "left" | "right") => {
-      const trigger = (
-        window as unknown as Record<
-          string,
-          ((d: "left" | "right") => void) | undefined
-        >
-      ).__swipeTrigger;
-      if (trigger) {
-        trigger(direction);
+      if (swipeTriggerRef.current) {
+        swipeTriggerRef.current(direction);
       } else {
         handleSwipe(direction);
       }
@@ -646,6 +642,7 @@ export default function ResultPage() {
                   surname={context.surname || ""}
                   index={actualIndex}
                   onSwipeComplete={handleSwipe}
+                  swipeTriggerRef={swipeTriggerRef}
                 />
               );
             }
