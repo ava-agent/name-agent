@@ -16,12 +16,39 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
   onResultRef.current = onResult;
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const mountedRef = useRef(true);
 
   // 在客户端检测支持情况
   useEffect(() => {
     setSupported(
       !!navigator.mediaDevices?.getUserMedia && !!window.MediaRecorder
     );
+  }, []);
+
+  // 组件卸载时清理所有资源
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      // 停止录音
+      if (mediaRecorderRef.current?.state === "recording") {
+        mediaRecorderRef.current.stop();
+      }
+      // 清理所有 setTimeout
+      timersRef.current.forEach(clearTimeout);
+      timersRef.current = [];
+    };
+  }, []);
+
+  // 安全的 setTimeout，自动追踪以便清理
+  const safeTimeout = useCallback((fn: () => void, ms: number) => {
+    const id = setTimeout(() => {
+      timersRef.current = timersRef.current.filter((t) => t !== id);
+      if (mountedRef.current) fn();
+    }, ms);
+    timersRef.current.push(id);
+    return id;
   }, []);
 
   // 获取浏览器支持的音频格式
@@ -40,8 +67,18 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
   }, []);
 
   const start = useCallback(async () => {
+    // 防止重复启动录音
+    if (mediaRecorderRef.current?.state === "recording") return;
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      // 如果在获取权限期间组件已卸载，立即释放
+      if (!mountedRef.current) {
+        stream.getTracks().forEach((t) => t.stop());
+        return;
+      }
+
       const mimeType = getMimeType();
       const recorderOptions = mimeType ? { mimeType } : undefined;
       const mediaRecorder = new MediaRecorder(stream, recorderOptions);
@@ -57,9 +94,11 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
 
-        const audioBlob = new Blob(chunksRef.current, {
-          type: mimeType || "audio/webm",
-        });
+        // 组件已卸载则不处理
+        if (!mountedRef.current) return;
+
+        const actualType = mimeType || "audio/webm";
+        const audioBlob = new Blob(chunksRef.current, { type: actualType });
         if (audioBlob.size < 100) {
           setIsProcessing(false);
           return;
@@ -70,12 +109,11 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
 
         try {
           const formData = new FormData();
-          // 根据 mime 类型选择扩展名
-          const ext = mimeType.includes("mp4")
+          const ext = actualType.includes("mp4")
             ? "mp4"
-            : mimeType.includes("ogg")
+            : actualType.includes("ogg")
               ? "ogg"
-              : mimeType.includes("wav")
+              : actualType.includes("wav")
                 ? "wav"
                 : "webm";
           formData.append("audio", audioBlob, `recording.${ext}`);
@@ -85,20 +123,22 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
             body: formData,
           });
 
+          if (!mountedRef.current) return;
+
           const data = await res.json();
           if (data.text) {
             setTranscript(data.text);
             onResultRef.current?.(data.text);
           } else {
             setTranscript(data.error || "未识别到内容");
-            // 3秒后清除错误提示
-            setTimeout(() => setTranscript(""), 3000);
+            safeTimeout(() => setTranscript(""), 3000);
           }
         } catch {
+          if (!mountedRef.current) return;
           setTranscript("网络错误");
-          setTimeout(() => setTranscript(""), 3000);
+          safeTimeout(() => setTranscript(""), 3000);
         } finally {
-          setIsProcessing(false);
+          if (mountedRef.current) setIsProcessing(false);
         }
       };
 
@@ -107,10 +147,11 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
       setIsListening(true);
       setTranscript("");
     } catch {
+      if (!mountedRef.current) return;
       setTranscript("无法访问麦克风");
-      setTimeout(() => setTranscript(""), 3000);
+      safeTimeout(() => setTranscript(""), 3000);
     }
-  }, [getMimeType]);
+  }, [getMimeType, safeTimeout]);
 
   const stop = useCallback(() => {
     if (mediaRecorderRef.current?.state === "recording") {

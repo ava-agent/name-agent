@@ -10,6 +10,7 @@ export default function HomePage() {
   const router = useRouter();
   const { resetFlow, updateContext } = useFlowStore();
   const [quickSurname, setQuickSurname] = useState("");
+  const [quickGender, setQuickGender] = useState<"boy" | "girl" | "neutral">("boy");
 
   const handleStart = () => {
     resetFlow();
@@ -21,6 +22,7 @@ export default function HomePage() {
     if (!surname) return;
     resetFlow();
     updateContext("surname", surname);
+    updateContext("gender", quickGender);
     router.push("/result");
   };
 
@@ -113,12 +115,22 @@ export default function HomePage() {
               onChange={(e) => setQuickSurname(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleQuickGenerate()}
               placeholder="输入姓氏"
-              className="h-11 flex-1 rounded-xl border-2 border-border bg-white/80 px-4 text-base transition-colors focus:border-orange-400 focus:outline-none"
+              maxLength={10}
+              className="h-11 w-28 rounded-xl border-2 border-border bg-white/80 px-4 text-base transition-colors focus:border-orange-400 focus:outline-none"
             />
+            <select
+              value={quickGender}
+              onChange={(e) => setQuickGender(e.target.value as "boy" | "girl" | "neutral")}
+              className="h-11 rounded-xl border-2 border-border bg-white/80 px-2 text-sm transition-colors focus:border-orange-400 focus:outline-none"
+            >
+              <option value="boy">男孩</option>
+              <option value="girl">女孩</option>
+              <option value="neutral">不限</option>
+            </select>
             <Button
               onClick={handleQuickGenerate}
               disabled={!quickSurname.trim()}
-              className="h-11 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-5 font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98] disabled:opacity-40"
+              className="h-11 flex-1 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-5 font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98] disabled:opacity-40"
             >
               马上起名
             </Button>

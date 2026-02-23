@@ -14,9 +14,17 @@ export async function POST(req: NextRequest) {
 
     const { context } = (await req.json()) as { context: Partial<UserContext> };
 
-    if (!context.surname) {
+    if (!context.surname || typeof context.surname !== "string") {
       return NextResponse.json(
         { error: "姓氏不能为空" },
+        { status: 400 }
+      );
+    }
+
+    // 限制 surname 长度，防止滥用
+    if (context.surname.length > 10) {
+      return NextResponse.json(
+        { error: "姓氏过长" },
         { status: 400 }
       );
     }
@@ -27,51 +35,54 @@ export async function POST(req: NextRequest) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30000);
 
-    const response = await client.chat.completions.create(
-      {
-        model: "glm-4",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.8,
-      },
-      { signal: controller.signal }
-    );
-
-    clearTimeout(timeout);
+    let response;
+    try {
+      response = await client.chat.completions.create(
+        {
+          model: "glm-4",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.8,
+        },
+        { signal: controller.signal }
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
 
     const content = response.choices[0]?.message?.content || "";
 
-    // 从返回内容中提取 JSON
+    // 从返回内容中提取 JSON — 使用更精确的匹配
     let names: GeneratedName[] = [];
     try {
-      const jsonMatch = content.match(/\[[\s\S]*\]/);
+      // 匹配以 [{ 开始的 JSON 数组（非贪婪）
+      const jsonMatch = content.match(/\[\s*\{[\s\S]*?\}\s*\]/);
       if (jsonMatch) {
         const raw = JSON.parse(jsonMatch[0]);
-        names = raw.map(
-          (
-            item: {
-              givenName: string;
-              pinyin: string;
-              meaning: string;
-              source: string;
-              wuxingAnalysis: string;
-              personalConnection: string;
-            },
-            index: number
-          ) => ({
-            id: `name-${Date.now()}-${index}`,
-            surname: context.surname,
-            givenName: item.givenName,
-            pinyin: item.pinyin,
-            meaning: item.meaning,
-            source: item.source || "原创",
-            wuxingAnalysis: item.wuxingAnalysis,
-            personalConnection: item.personalConnection,
-          })
-        );
+        if (Array.isArray(raw)) {
+          names = raw
+            .filter(
+              (item: Record<string, unknown>) =>
+                item && typeof item.givenName === "string" && item.givenName
+            )
+            .map(
+              (
+                item: Record<string, unknown>,
+                index: number
+              ) => ({
+                id: `name-${Date.now()}-${index}`,
+                surname: context.surname || "",
+                givenName: String(item.givenName),
+                pinyin: String(item.pinyin || ""),
+                meaning: String(item.meaning || "暂无解释"),
+                source: String(item.source || "原创"),
+                wuxingAnalysis: String(item.wuxingAnalysis || "暂无分析"),
+                personalConnection: String(item.personalConnection || ""),
+              })
+            );
+        }
       }
     } catch (parseError) {
       console.error("Failed to parse AI response:", parseError);
-      console.error("Raw content:", content);
     }
 
     if (names.length === 0) {
@@ -83,10 +94,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ names });
   } catch (error) {
+    const message =
+      error instanceof Error && error.name === "AbortError"
+        ? "AI 响应超时，请重试"
+        : "生成失败，请稍后重试";
     console.error("Generate error:", error);
-    return NextResponse.json(
-      { error: "生成失败，请检查 API 配置" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

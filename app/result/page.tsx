@@ -469,11 +469,16 @@ export default function ResultPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [error, setError] = useState("");
   const swipeTriggerRef = useRef<SwipeTriggerFn | null>(null);
+  const currentIndexRef = useRef(currentIndex);
+  currentIndexRef.current = currentIndex;
   const contextRef = useRef(context);
   contextRef.current = context;
   const hasFetched = useRef(false);
+  const generatingRef = useRef(false);
 
   const generate = useCallback(async () => {
+    if (generatingRef.current) return;
+    generatingRef.current = true;
     setIsGenerating(true);
     setError("");
     setCurrentIndex(0);
@@ -484,7 +489,7 @@ export default function ResultPage() {
         body: JSON.stringify({ context: contextRef.current }),
       });
       const data = await res.json();
-      if (data.names) {
+      if (data.names?.length) {
         setGeneratedNames(data.names);
       } else {
         setError(data.error || "生成失败，请重试");
@@ -493,6 +498,7 @@ export default function ResultPage() {
       setError("网络错误，请检查网络后重试");
     } finally {
       setIsGenerating(false);
+      generatingRef.current = false;
     }
   }, [setGeneratedNames, setIsGenerating]);
 
@@ -508,15 +514,16 @@ export default function ResultPage() {
     }
   }, [context.surname, generate, router]);
 
-  // Handle swipe
+  // Handle swipe - use ref for currentIndex to avoid stale closure
   const handleSwipe = useCallback(
     (direction: "left" | "right") => {
-      if (direction === "right" && generatedNames[currentIndex]) {
-        toggleFavorite(generatedNames[currentIndex].id);
+      const idx = currentIndexRef.current;
+      if (direction === "right" && generatedNames[idx]) {
+        toggleFavorite(generatedNames[idx].id);
       }
       setCurrentIndex((prev) => prev + 1);
     },
-    [currentIndex, generatedNames, toggleFavorite]
+    [generatedNames, toggleFavorite]
   );
 
   // Button swipe triggers
@@ -683,13 +690,20 @@ export default function ResultPage() {
 
           {/* Share button */}
           <button
-            onClick={() => {
+            onClick={async () => {
               const name = generatedNames[currentIndex];
-              if (navigator.share && name) {
-                navigator.share({
-                  title: `${context.surname}${name.givenName}`,
-                  text: `${context.surname}${name.givenName} - ${name.meaning}`,
-                });
+              if (!name) return;
+              const text = `${context.surname}${name.givenName} - ${name.meaning}`;
+              if (navigator.share) {
+                try {
+                  await navigator.share({
+                    title: `${context.surname}${name.givenName}`,
+                    text,
+                  });
+                } catch { /* user cancelled */ }
+              } else if (navigator.clipboard) {
+                await navigator.clipboard.writeText(text);
+                alert("已复制到剪贴板");
               }
             }}
             className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-sky-200 bg-white shadow-sm transition-all active:scale-90"

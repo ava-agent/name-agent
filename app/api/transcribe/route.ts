@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const MAX_AUDIO_SIZE = 10 * 1024 * 1024; // 10MB
+
 export async function POST(req: NextRequest) {
   try {
     if (!process.env.ZHIPU_API_KEY) {
@@ -16,6 +18,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "没有收到音频文件" }, { status: 400 });
     }
 
+    // 文件大小限制
+    if (audioFile.size > MAX_AUDIO_SIZE) {
+      return NextResponse.json(
+        { error: "音频文件过大，请录制较短的内容" },
+        { status: 400 }
+      );
+    }
+
     // 将 File 转为 Blob，确保智谱 API 能正确接收
     const arrayBuffer = await audioFile.arrayBuffer();
     const blob = new Blob([arrayBuffer], { type: audioFile.type || "audio/webm" });
@@ -28,31 +38,32 @@ export async function POST(req: NextRequest) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
 
-    const response = await fetch(
-      "https://open.bigmodel.cn/api/paas/v4/audio/transcriptions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.ZHIPU_API_KEY}`,
-        },
-        body: zhipuForm,
-        signal: controller.signal,
-      }
-    );
-
-    clearTimeout(timeout);
+    let response;
+    try {
+      response = await fetch(
+        "https://open.bigmodel.cn/api/paas/v4/audio/transcriptions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.ZHIPU_API_KEY}`,
+          },
+          body: zhipuForm,
+          signal: controller.signal,
+        }
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
 
     if (!response.ok) {
-      const errText = await response.text();
-      console.error("GLM-ASR error:", response.status, errText);
+      console.error("GLM-ASR error:", response.status);
       return NextResponse.json(
         { error: "语音识别失败，请重试" },
-        { status: 500 }
+        { status: 502 }
       );
     }
 
     const data = await response.json();
-    console.log("GLM-ASR response:", JSON.stringify(data));
 
     // 尝试多种可能的返回格式
     let text = "";
@@ -65,15 +76,19 @@ export async function POST(req: NextRequest) {
     }
 
     if (!text) {
-      return NextResponse.json({ error: "未能识别语音内容" });
+      return NextResponse.json(
+        { error: "未能识别语音内容" },
+        { status: 422 }
+      );
     }
 
     return NextResponse.json({ text });
   } catch (error) {
+    const message =
+      error instanceof Error && error.name === "AbortError"
+        ? "语音识别超时，请重试"
+        : "服务器错误，请重试";
     console.error("Transcribe error:", error);
-    return NextResponse.json(
-      { error: "服务器错误，请重试" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -25,7 +25,9 @@ export function MultiSelectCard({ config }: { config: CardConfig }) {
       if (!config.options) return;
       const matched = matchVoiceToMultiOptions(text, config.options);
       if (matched.length > 0) {
-        updateContext(config.field as keyof UserContext, matched);
+        // 合并已有选择和语音识别结果，去重，最多 3 个
+        const merged = [...new Set([...selected, ...matched])].slice(0, 3);
+        updateContext(config.field as keyof UserContext, merged);
       }
     },
   });
