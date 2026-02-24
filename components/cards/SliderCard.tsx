@@ -3,24 +3,12 @@
 import { Slider } from "@/components/ui/slider";
 import { useFlowStore } from "@/stores/flow-store";
 import { CardConfig, UserContext } from "@/lib/types";
-import { VoiceButton } from "@/components/VoiceButton";
-import { useVoiceInput } from "@/hooks/useVoiceInput";
-import { matchVoiceToSlider } from "@/lib/voice-parser";
 
 export function SliderCard({ config }: { config: CardConfig }) {
   const { context, updateContext } = useFlowStore();
   const value = (context[config.field] as number) ?? 5;
   const min = config.min ?? 1;
   const max = config.max ?? 10;
-
-  const voice = useVoiceInput({
-    onResult: (text) => {
-      const matched = matchVoiceToSlider(text, min, max);
-      if (matched !== null) {
-        updateContext(config.field as keyof UserContext, matched);
-      }
-    },
-  });
 
   // 计算进度百分比用于渐变
   const pct = ((value - min) / (max - min)) * 100;
@@ -49,15 +37,6 @@ export function SliderCard({ config }: { config: CardConfig }) {
       <div className="flex justify-between text-sm text-muted-foreground">
         <span>{config.minLabel}</span>
         <span>{config.maxLabel}</span>
-      </div>
-      <div className="flex justify-center">
-        <VoiceButton
-          isListening={voice.isListening}
-          isProcessing={voice.isProcessing}
-          supported={voice.supported}
-          onClick={voice.toggle}
-          transcript={voice.transcript}
-        />
       </div>
     </div>
   );
