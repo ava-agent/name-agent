@@ -672,6 +672,7 @@ export default function ResultPage() {
         <div className="mb-4 flex items-center justify-center gap-6">
           {/* Skip button */}
           <button
+            aria-label="跳过"
             onClick={() => handleButtonSwipe("left")}
             className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-gray-200 bg-white shadow-md transition-all active:scale-90"
           >
@@ -690,6 +691,7 @@ export default function ResultPage() {
 
           {/* Share button */}
           <button
+            aria-label="分享"
             onClick={async () => {
               const name = generatedNames[currentIndex];
               if (!name) return;
@@ -703,7 +705,6 @@ export default function ResultPage() {
                 } catch { /* user cancelled */ }
               } else if (navigator.clipboard) {
                 await navigator.clipboard.writeText(text);
-                alert("已复制到剪贴板");
               }
             }}
             className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-sky-200 bg-white shadow-sm transition-all active:scale-90"
@@ -726,6 +727,7 @@ export default function ResultPage() {
 
           {/* Favorite button */}
           <button
+            aria-label="收藏"
             onClick={() => handleButtonSwipe("right")}
             className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-orange-200 bg-gradient-to-br from-orange-400 to-amber-500 shadow-lg shadow-orange-500/25 transition-all active:scale-90"
           >

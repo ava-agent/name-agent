@@ -111,6 +111,7 @@ export default function HomePage() {
           </div>
           <div className="mt-3 flex gap-2">
             <input
+              aria-label="姓氏"
               value={quickSurname}
               onChange={(e) => setQuickSurname(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleQuickGenerate()}
@@ -119,6 +120,7 @@ export default function HomePage() {
               className="h-11 w-28 rounded-xl border-2 border-border bg-white/80 px-4 text-base transition-colors focus:border-orange-400 focus:outline-none"
             />
             <select
+              aria-label="性别"
               value={quickGender}
               onChange={(e) => setQuickGender(e.target.value as "boy" | "girl" | "neutral")}
               className="h-11 rounded-xl border-2 border-border bg-white/80 px-2 text-sm transition-colors focus:border-orange-400 focus:outline-none"

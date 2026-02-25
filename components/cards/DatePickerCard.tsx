@@ -5,6 +5,21 @@ import { CardConfig, UserContext } from "@/lib/types";
 import { VoiceButton } from "@/components/VoiceButton";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 
+const TIME_KEYWORDS = [
+  { key: "子时", val: "子时(23-1点)" },
+  { key: "丑时", val: "丑时(1-3点)" },
+  { key: "寅时", val: "寅时(3-5点)" },
+  { key: "卯时", val: "卯时(5-7点)" },
+  { key: "辰时", val: "辰时(7-9点)" },
+  { key: "巳时", val: "巳时(9-11点)" },
+  { key: "午时", val: "午时(11-13点)" },
+  { key: "未时", val: "未时(13-15点)" },
+  { key: "申时", val: "申时(15-17点)" },
+  { key: "酉时", val: "酉时(17-19点)" },
+  { key: "戌时", val: "戌时(19-21点)" },
+  { key: "亥时", val: "亥时(21-23点)" },
+];
+
 export function DatePickerCard({ config }: { config: CardConfig }) {
   const { context, updateContext } = useFlowStore();
   const value = (context[config.field] as string) || "";
@@ -19,21 +34,7 @@ export function DatePickerCard({ config }: { config: CardConfig }) {
         updateContext(config.field as keyof UserContext, dateStr);
       }
       // 也尝试匹配时辰
-      const timeKeywords = [
-        { key: "子时", val: "子时(23-1点)" },
-        { key: "丑时", val: "丑时(1-3点)" },
-        { key: "寅时", val: "寅时(3-5点)" },
-        { key: "卯时", val: "卯时(5-7点)" },
-        { key: "辰时", val: "辰时(7-9点)" },
-        { key: "巳时", val: "巳时(9-11点)" },
-        { key: "午时", val: "午时(11-13点)" },
-        { key: "未时", val: "未时(13-15点)" },
-        { key: "申时", val: "申时(15-17点)" },
-        { key: "酉时", val: "酉时(17-19点)" },
-        { key: "戌时", val: "戌时(19-21点)" },
-        { key: "亥时", val: "亥时(21-23点)" },
-      ];
-      for (const t of timeKeywords) {
+      for (const t of TIME_KEYWORDS) {
         if (text.includes(t.key)) {
           updateContext("birthTime", t.val);
           break;
