@@ -23,8 +23,8 @@
 
 - **卡片式交互** - 17 张卡片覆盖 6 个维度（基本信息、期望寓意、家族信息、文化偏好、生活背景、自由补充），逐步收集用户偏好
 - **探探风格滑动** - 结果页采用 Tinder/探探式左右滑动卡片，右划收藏、左划跳过
-- **语音输入** - 所有卡片均支持语音输入，基于智谱 GLM-ASR 语音识别 API
-- **快速起名** - 首页输入姓氏即可直接跳到 AI 生成，无需走完整卡片流程
+- **语音输入** - 自定义文本输入卡片支持语音输入（姓氏、名字、日期、自由补充），基于智谱 GLM-ASR 语音识别
+- **快速起名** - 首页输入姓氏 + 选择性别即可直接跳到 AI 生成，无需走完整卡片流程
 - **AI 生成** - 调用智谱 GLM-4 大模型，结合用户上下文生成 5 个有文化内涵的名字
 - **移动端优先** - 针对手机端设计，暖色调 UI、毛玻璃卡片、流畅动画
 
@@ -38,7 +38,6 @@
 | 状态管理 | Zustand |
 | AI 模型 | 智谱 GLM-4 (OpenAI 兼容接口) |
 | 语音识别 | 智谱 GLM-ASR + MediaRecorder API |
-| 数据库 | Supabase (PostgreSQL) |
 | 部署 | Vercel |
 
 ## 项目结构
@@ -58,11 +57,11 @@ name-agent/
 │   ├── VoiceButton.tsx           # 通用语音按钮组件
 │   ├── cards/
 │   │   ├── CardStack.tsx         # 卡片流程容器（进度条、导航）
-│   │   ├── TextInputCard.tsx     # 文本输入卡片
+│   │   ├── TextInputCard.tsx     # 文本输入卡片（带语音）
 │   │   ├── SelectCard.tsx        # 单选卡片
 │   │   ├── MultiSelectCard.tsx   # 多选卡片
 │   │   ├── SliderCard.tsx        # 滑块卡片
-│   │   ├── DatePickerCard.tsx    # 日期选择卡片
+│   │   ├── DatePickerCard.tsx    # 日期选择卡片（带语音）
 │   │   └── VoiceInputCard.tsx    # 语音输入卡片
 │   └── ui/                       # Shadcn/UI 组件
 ├── hooks/
@@ -72,7 +71,6 @@ name-agent/
 ├── lib/
 │   ├── types.ts                  # TypeScript 类型定义
 │   ├── cards-config.ts           # 17 张卡片配置
-│   ├── voice-parser.ts           # 语音文本 → 选项匹配
 │   ├── utils.ts                  # 工具函数
 │   └── ai/
 │       ├── client.ts             # 智谱 AI 客户端
@@ -110,13 +108,11 @@ npm run dev
 | 变量名 | 说明 |
 |--------|------|
 | `ZHIPU_API_KEY` | 智谱 AI API Key（必填） |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase 项目 URL（可选） |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名 Key（可选） |
 
 ## 用户流程
 
-1. **首页** - 点击「开始起名」进入完整流程，或输入姓氏点击「马上起名」快速生成
-2. **卡片交互** - 依次回答 17 个问题（可跳过非必填项），支持语音和手动输入
+1. **首页** - 点击「开始起名」进入完整流程，或输入姓氏 + 选择性别点击「马上起名」快速生成
+2. **卡片交互** - 依次回答 17 个问题（可跳过非必填项），文本输入支持语音
 3. **AI 生成** - 提交后 AI 根据所有上下文信息生成 5 个推荐名字
 4. **滑动选名** - 左右滑动浏览名字，右划收藏、左划跳过
 5. **结果汇总** - 浏览完毕后查看收藏列表，可「换一批」重新生成
