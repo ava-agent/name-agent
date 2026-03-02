@@ -2,7 +2,7 @@
 
 基于 AI 的中文宝宝起名工具。通过卡片式交互收集用户偏好，利用大语言模型生成有文化内涵的名字。
 
-**线上地址**: [https://name-agent.vercel.app](https://name-agent.vercel.app)
+**线上地址**: [https://name.rxcloud.group](https://name.rxcloud.group)
 
 ## 产品截图
 
