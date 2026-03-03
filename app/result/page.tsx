@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useFlowStore } from "@/stores/flow-store";
 import { GeneratedName } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { easing, duration, spring, stagger, gesture } from "@/lib/motion";
 
 type SwipeTriggerFn = (direction: "left" | "right") => void;
 
@@ -147,28 +148,25 @@ function SwipeableCard({
     info: PanInfo
   ) => {
     if (swiping.current) return;
-    const threshold = 80;
-    const velocityThreshold = 400;
 
     if (
-      info.offset.x > threshold ||
-      info.velocity.x > velocityThreshold
+      info.offset.x > gesture.swipeThreshold ||
+      info.velocity.x > gesture.velocityThreshold
     ) {
       swiping.current = true;
-      await animateValue(x, 500, { duration: 0.3, ease: "easeOut" });
+      await animateValue(x, 500, { duration: duration.standard / 1000, ease: easing.easeOut });
       onSwipeComplete("right");
     } else if (
-      info.offset.x < -threshold ||
-      info.velocity.x < -velocityThreshold
+      info.offset.x < -gesture.swipeThreshold ||
+      info.velocity.x < -gesture.velocityThreshold
     ) {
       swiping.current = true;
-      await animateValue(x, -500, { duration: 0.3, ease: "easeOut" });
+      await animateValue(x, -500, { duration: duration.standard / 1000, ease: easing.easeOut });
       onSwipeComplete("left");
     } else {
       animateValue(x, 0, {
         type: "spring",
-        stiffness: 500,
-        damping: 30,
+        ...spring.snappy,
       });
     }
   };
@@ -179,8 +177,8 @@ function SwipeableCard({
       if (swiping.current) return;
       swiping.current = true;
       await animateValue(x, direction === "right" ? 500 : -500, {
-        duration: 0.35,
-        ease: "easeOut",
+        duration: duration.emphasis / 1000,
+        ease: easing.easeOut,
       });
       onSwipeComplete(direction);
     },
@@ -272,32 +270,50 @@ function LoadingAnimation() {
   useEffect(() => {
     const interval = setInterval(() => {
       setTipIndex((i) => (i + 1) % LOADING_TIPS.length);
-    }, 2000);
+    }, 2200);
     return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="relative flex min-h-dvh flex-col items-center justify-center px-8">
+      {/* Animated Background */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-1/2 top-1/3 h-64 w-64 -translate-x-1/2 rounded-full bg-gradient-to-br from-orange-200/50 to-amber-100/30 blur-3xl" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: duration.immersive, ease: easing.easeOut }}
+          className="absolute left-1/2 top-1/3 h-64 w-64 -translate-x-1/2 rounded-full bg-gradient-to-br from-orange-200/50 to-amber-100/30 blur-3xl"
+        />
       </div>
 
       <div className="relative z-10 flex flex-col items-center">
+        {/* Animated Logo */}
         <motion.div
-          className="mb-10 flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-orange-400 to-amber-500 shadow-xl shadow-orange-500/25"
+          initial={{ opacity: 0, scale: 0.8 }}
           animate={{
-            scale: [1, 1.05, 1],
-            rotate: [0, 2, -2, 0],
+            opacity: 1,
+            scale: [1, 1.03, 1],
+            rotate: [0, 1.5, -1.5, 0],
           }}
           transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut",
+            opacity: { duration: duration.standard, ease: easing.easeOut },
+            scale: {
+              duration: 2.5,
+              repeat: Infinity,
+              ease: "easeInOut",
+            },
+            rotate: {
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut",
+            },
           }}
+          className="mb-10 flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-orange-400 to-amber-500 shadow-xl shadow-orange-500/25"
         >
           <span className="text-5xl">✍️</span>
         </motion.div>
 
+        {/* Progress Dots */}
         <div className="mb-6 flex gap-2">
           {LOADING_TIPS.map((_, i) => (
             <motion.div
@@ -307,17 +323,19 @@ function LoadingAnimation() {
                 width: i === tipIndex ? 24 : 8,
                 backgroundColor: i === tipIndex ? "#f97316" : "#fed7aa",
               }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: duration.standard, ease: easing.easeOut }}
             />
           ))}
         </div>
 
+        {/* Tip Text with Smooth Transition */}
         <AnimatePresence mode="wait">
           <motion.p
             key={tipIndex}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: duration.standard, ease: easing.easeOut }}
             className="text-center text-base text-muted-foreground"
           >
             {LOADING_TIPS[tipIndex]}

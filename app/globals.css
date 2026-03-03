@@ -2,6 +2,34 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* ═══════════════════════════════════════════════════════════════
+   Apple-Style Animation System
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Animation Durations */
+  --duration-instant: 100ms;
+  --duration-micro: 200ms;
+  --duration-standard: 300ms;
+  --duration-emphasis: 400ms;
+  --duration-immersive: 500ms;
+  --duration-brand: 800ms;
+
+  /* Easing Curves */
+  --ease-ios: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.42, 0, 0.58, 1);
+  --ease-bouncy: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Stagger Delays */
+  --stagger-fast: 50ms;
+  --stagger-standard: 80ms;
+  --stagger-slow: 120ms;
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
