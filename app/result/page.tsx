@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 import { useFlowStore } from "@/stores/flow-store";
 import { GeneratedName } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { easing, duration, spring, stagger, gesture } from "@/lib/motion";
+import { easing, duration, spring, gesture } from "@/lib/motion";
 
 type SwipeTriggerFn = (direction: "left" | "right") => void;
 

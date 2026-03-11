@@ -11,7 +11,7 @@ import { DatePickerCard } from "./DatePickerCard";
 import { VoiceInputCard } from "./VoiceInputCard";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { easing, duration, spring, stagger } from "@/lib/motion";
+import { easing, duration, stagger } from "@/lib/motion";
 
 function renderCard(cardId: string) {
   const card = CARDS.find((c) => c.id === cardId);
