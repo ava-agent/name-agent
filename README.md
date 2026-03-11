@@ -96,9 +96,9 @@
 |------|------|------|
 | 缓动曲线 | `iOS [0.25, 0.1, 0.25, 1]` | 标准 UI 交互 |
 | | `bouncy [0.34, 1.56, 0.64, 1]` | 强调性动画（过冲效果） |
-| 持续时间 | `instant 100ms` | 按钮点击、开关切换 |
-| | `standard 300ms` | 卡片展开、模态框 |
-| | `brand 800ms` | Logo 动画、首次加载 |
+| 持续时间 | `instant 0.1s` | 按钮点击、开关切换 |
+| | `standard 0.3s` | 卡片展开、模态框 |
+| | `brand 0.8s` | Logo 动画、首次加载 |
 | 弹簧配置 | `snappy { stiffness: 400, damping: 30 }` | 小型 UI 元素 |
 | | `bouncy { stiffness: 400, damping: 15 }` | 成功反馈 |
 | 手势 | `swipeThreshold 80px` | 滑动触发阈值 |

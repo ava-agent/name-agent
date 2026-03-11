@@ -154,14 +154,14 @@ function SwipeableCard({
       info.velocity.x > gesture.velocityThreshold
     ) {
       swiping.current = true;
-      await animateValue(x, 500, { duration: duration.standard / 1000, ease: easing.easeOut });
+      await animateValue(x, 500, { duration: duration.standard, ease: easing.easeOut });
       onSwipeComplete("right");
     } else if (
       info.offset.x < -gesture.swipeThreshold ||
       info.velocity.x < -gesture.velocityThreshold
     ) {
       swiping.current = true;
-      await animateValue(x, -500, { duration: duration.standard / 1000, ease: easing.easeOut });
+      await animateValue(x, -500, { duration: duration.standard, ease: easing.easeOut });
       onSwipeComplete("left");
     } else {
       animateValue(x, 0, {
@@ -177,7 +177,7 @@ function SwipeableCard({
       if (swiping.current) return;
       swiping.current = true;
       await animateValue(x, direction === "right" ? 500 : -500, {
-        duration: duration.emphasis / 1000,
+        duration: duration.emphasis,
         ease: easing.easeOut,
       });
       onSwipeComplete(direction);
