@@ -43,19 +43,53 @@
 
 ## 技术架构
 
+### 全栈分层架构
+
+<p align="center">
+  <img src="public/screenshots/tech-architecture.png" width="800" alt="全栈技术架构分层图" />
+</p>
+
+系统采用四层架构设计：
+
+| 层级 | 职责 | 核心技术 |
+|------|------|----------|
+| **前端展示层** | 首页、卡片流程、结果页三大视图 | React 19 + Next.js 16 App Router + Framer Motion |
+| **状态管理层** | 全局状态、卡片配置、动画系统 | Zustand Store + localStorage 持久化 |
+| **API 网关层** | AI 起名接口、语音转写接口 | Next.js Serverless Functions (Vercel Edge) |
+| **AI 模型层** | 文本生成、语音识别 | 智谱 GLM-4 + GLM-ASR (OpenAI 兼容接口) |
+
+<details>
+<summary>旧版概览图</summary>
 <p align="center">
   <img src="public/screenshots/architecture.png" width="800" alt="技术架构图" />
 </p>
+</details>
 
 ## AI Agent 实现
 
+### 执行逻辑 — Structured Prompt Engineering
+
 <p align="center">
-  <img src="public/screenshots/ai-pipeline.png" width="800" alt="AI Agent Pipeline" />
+  <img src="public/screenshots/agent-logic.png" width="800" alt="AI Agent 执行逻辑 - Structured Prompt Engineering Pattern" />
 </p>
+
+本系统采用 **Structured Prompt Engineering** 模式（非 ReAct Agent，非 RAG 检索增强），通过精心设计的 Prompt 模板将多维用户上下文注入单次 LLM 调用：
+
+```
+上下文收集 → Prompt 构建 → 单轮 LLM 推理 → JSON 提取 → 结构化输出
+```
+
+**五阶段流水线：**
+
+1. **上下文收集** — 17 张卡片收集 `Partial<UserContext>`（17 个字段，6 组分类）
+2. **Prompt 构建** — `buildPrompt()` 将 6 维上下文通过模板插值注入结构化 Prompt，包含系统角色（"起名大师"）、6 段上下文、JSON Schema、5 条约束
+3. **LLM 推理** — 单次调用 GLM-4（temperature: 0.8 提高创造性，AbortController 30s 超时）
+4. **输出解析** — 正则 `/\[\s*\{[\s\S]*?\}\s*\]/` 鲁棒提取 JSON，字段校验与归一化
+5. **结构化输出** — 生成 5 个 `GeneratedName`，每个含 6 维结构化信息
 
 ### Prompt 工程
 
-系统采用结构化 Prompt 构建方案，将 17 张卡片的用户输入整合为 6 维上下文：
+`buildPrompt()` 将 17 张卡片的用户输入整合为 6 维上下文：
 
 | 维度 | 信息 | 用途 |
 |------|------|------|
@@ -84,6 +118,26 @@
 ### 语音识别
 
 通过 MediaRecorder API 录制音频，调用智谱 GLM-ASR 进行语音转文字，支持 webm/mp4/ogg/wav 多种格式自动检测。
+
+<details>
+<summary>旧版 AI Pipeline 概览图</summary>
+<p align="center">
+  <img src="public/screenshots/ai-pipeline.png" width="800" alt="AI Agent Pipeline" />
+</p>
+</details>
+
+## 数据流与状态管理
+
+<p align="center">
+  <img src="public/screenshots/data-flow.png" width="800" alt="数据流与状态管理" />
+</p>
+
+系统通过 Zustand 全局 Store 管理所有状态，支持两条用户路径：
+
+- **Path A（完整流程）**：首页 → 17 张卡片顺序输入 → AI 生成 → 滑动选名 → 结果汇总
+- **Path B（快速生成）**：首页输入姓氏 + 性别 → 直接跳到 AI 生成
+
+核心状态：`currentCardIndex`、`context: Partial<UserContext>`（17 字段）、`generatedNames: GeneratedName[]`、`isGenerating`、`favoriteIds: string[]`（localStorage 持久化）
 
 ## 用户流程
 
