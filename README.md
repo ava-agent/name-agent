@@ -1,8 +1,16 @@
-# AI 起名 - 让每个名字都有故事
+<p align="center">
+  <img src="public/screenshots/hero-banner.png" width="800" alt="AI 起名 - 让每个名字都有故事" />
+</p>
 
-基于 AI Agent 的中文宝宝起名工具。通过 17 张卡片式交互收集 6 维用户偏好，结合大语言模型生成有文化内涵的名字，探探式滑动选名。
+<h1 align="center">AI 起名 - 让每个名字都有故事</h1>
 
-**线上地址**: [https://name.rxcloud.group](https://name.rxcloud.group)
+<p align="center">
+  基于 AI Agent 的中文宝宝起名工具。通过 17 张卡片式交互收集 6 维用户偏好，结合大语言模型生成有文化内涵的名字，探探式滑动选名。
+</p>
+
+<p align="center">
+  <a href="https://name.rxcloud.group"><strong>在线体验 →</strong></a>
+</p>
 
 ## 产品截图
 
@@ -19,25 +27,11 @@
   <img src="public/screenshots/result-summary.png" width="200" alt="结果汇总" />
 </p>
 
-## 技术架构
-
-<p align="center">
-  <img src="public/screenshots/architecture.png" width="800" alt="技术架构图" />
-</p>
-
-## 用户流程
-
-<p align="center">
-  <img src="public/screenshots/user-flow.png" width="800" alt="用户流程图" />
-</p>
-
-1. **首页** - 点击「开始起名」进入完整流程，或输入姓氏 + 选择性别「马上起名」快速生成
-2. **卡片交互** - 依次回答 17 个问题（可跳过非必填项），文本输入支持语音
-3. **AI 生成** - 提交后 AI 根据 6 维上下文信息生成 5 个推荐名字
-4. **滑动选名** - 左右滑动浏览名字，右划收藏、左划跳过
-5. **结果汇总** - 浏览完毕后查看收藏列表，可「换一批」重新生成
-
 ## 核心特性
+
+<p align="center">
+  <img src="public/screenshots/features.png" width="800" alt="核心特性" />
+</p>
 
 - **卡片式交互** - 17 张卡片覆盖 6 个维度（基本信息、期望寓意、家族信息、文化偏好、生活背景、自由补充），渐进式收集用户偏好
 - **探探风格滑动** - 结果页采用 Tinder/探探式左右滑动卡片，右划收藏、左划跳过
@@ -47,7 +41,17 @@
 - **Apple 风格动效** - 完整的运动设计系统：iOS 缓动曲线、弹簧物理、交错入场、手势反馈
 - **移动端优先** - 针对手机端设计，暖色调 UI、毛玻璃卡片、流畅动画
 
+## 技术架构
+
+<p align="center">
+  <img src="public/screenshots/architecture.png" width="800" alt="技术架构图" />
+</p>
+
 ## AI Agent 实现
+
+<p align="center">
+  <img src="public/screenshots/ai-pipeline.png" width="800" alt="AI Agent Pipeline" />
+</p>
 
 ### Prompt 工程
 
@@ -81,7 +85,23 @@
 
 通过 MediaRecorder API 录制音频，调用智谱 GLM-ASR 进行语音转文字，支持 webm/mp4/ogg/wav 多种格式自动检测。
 
+## 用户流程
+
+<p align="center">
+  <img src="public/screenshots/user-flow.png" width="800" alt="用户流程图" />
+</p>
+
+1. **首页** - 点击「开始起名」进入完整流程，或输入姓氏 + 选择性别「马上起名」快速生成
+2. **卡片交互** - 依次回答 17 个问题（可跳过非必填项），文本输入支持语音
+3. **AI 生成** - 提交后 AI 根据 6 维上下文信息生成 5 个推荐名字
+4. **滑动选名** - 左右滑动浏览名字，右划收藏、左划跳过
+5. **结果汇总** - 浏览完毕后查看收藏列表，可「换一批」重新生成
+
 ## 交互设计系统
+
+<p align="center">
+  <img src="public/screenshots/motion-system.png" width="800" alt="运动设计系统" />
+</p>
 
 基于 Apple 设计理念构建的运动设计系统（`lib/motion.ts`），四大核心原则：
 
