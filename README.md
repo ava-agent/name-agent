@@ -35,9 +35,9 @@
 
 - **卡片式交互** - 17 张卡片覆盖 6 个维度（基本信息、期望寓意、家族信息、文化偏好、生活背景、自由补充），渐进式收集用户偏好
 - **探探风格滑动** - 结果页采用 Tinder/探探式左右滑动卡片，右划收藏、左划跳过
-- **语音输入** - 文本输入卡片和自由补充支持语音输入，基于智谱 GLM-ASR 语音识别
+- **自由补充** - 支持通过文字补充故事、回忆和特别期望，作为起名上下文
 - **快速起名** - 首页输入姓氏 + 选择性别即可直接跳到 AI 生成，无需走完整卡片流程
-- **AI 生成** - 调用智谱 GLM-4 大模型，结合 6 维用户上下文生成 5 个有文化内涵的名字
+- **AI 生成** - 调用火山引擎 Ark CodingPlan 模型，结合 6 维用户上下文生成 5 个有文化内涵的名字
 - **Apple 风格动效** - 完整的运动设计系统：iOS 缓动曲线、弹簧物理、交错入场、手势反馈
 - **移动端优先** - 针对手机端设计，暖色调 UI、毛玻璃卡片、流畅动画
 
@@ -55,8 +55,8 @@
 |------|------|----------|
 | **前端展示层** | 首页、卡片流程、结果页三大视图 | React 19 + Next.js 16 App Router + Framer Motion |
 | **状态管理层** | 全局状态、卡片配置、动画系统 | Zustand Store + localStorage 持久化 |
-| **API 网关层** | AI 起名接口、语音转写接口 | Next.js Serverless Functions (Vercel Edge) |
-| **AI 模型层** | 文本生成、语音识别 | 智谱 GLM-4 + GLM-ASR (OpenAI 兼容接口) |
+| **API 网关层** | AI 起名接口、语音转写占位接口 | Next.js Serverless Functions |
+| **AI 模型层** | 文本生成 | 火山引擎 Ark CodingPlan (OpenAI 兼容接口) |
 
 <details>
 <summary>旧版概览图</summary>
@@ -83,7 +83,7 @@
 
 1. **上下文收集** — 17 张卡片收集 `Partial<UserContext>`（17 个字段，6 组分类）
 2. **Prompt 构建** — `buildPrompt()` 将 6 维上下文通过模板插值注入结构化 Prompt，包含系统角色（"起名大师"）、6 段上下文、JSON Schema、5 条约束
-3. **LLM 推理** — 单次调用 GLM-4（temperature: 0.8 提高创造性，AbortController 30s 超时）
+3. **LLM 推理** — 单次调用 Ark CodingPlan 模型（temperature: 0.8 提高创造性，AbortController 55s 超时）
 4. **输出解析** — 正则 `/\[\s*\{[\s\S]*?\}\s*\]/` 鲁棒提取 JSON，字段校验与归一化
 5. **结构化输出** — 生成 5 个 `GeneratedName`，每个含 6 维结构化信息
 
@@ -98,7 +98,7 @@
 | 家族信息 | 父母名字、辈分字、避讳字 | 避免重复 + 传承要求 |
 | 文化偏好 | 五行属性、字数、发音偏好 | 文化约束条件 |
 | 生活背景 | 爱好、居住地、已有名字 | 个性化关联 |
-| 自由补充 | 语音/文字自由输入 | 额外上下文信息 |
+| 自由补充 | 文字自由输入 | 额外上下文信息 |
 
 ### 生成输出
 
@@ -115,9 +115,9 @@
 }
 ```
 
-### 语音识别
+### 语音转文字状态
 
-通过 MediaRecorder API 录制音频，调用智谱 GLM-ASR 进行语音转文字，支持 webm/mp4/ogg/wav 多种格式自动检测。
+旧语音识别服务已移除，当前默认关闭语音输入入口；`/api/transcribe` 会返回 501。后续接入火山引擎语音识别后，可通过 `NEXT_PUBLIC_VOICE_INPUT_ENABLED=true` 恢复前端入口。
 
 <details>
 <summary>旧版 AI Pipeline 概览图</summary>
@@ -146,7 +146,7 @@
 </p>
 
 1. **首页** - 点击「开始起名」进入完整流程，或输入姓氏 + 选择性别「马上起名」快速生成
-2. **卡片交互** - 依次回答 17 个问题（可跳过非必填项），文本输入支持语音
+2. **卡片交互** - 依次回答 17 个问题（可跳过非必填项），并补充故事、回忆或特别期望
 3. **AI 生成** - 提交后 AI 根据 6 维上下文信息生成 5 个推荐名字
 4. **滑动选名** - 左右滑动浏览名字，右划收藏、左划跳过
 5. **结果汇总** - 浏览完毕后查看收藏列表，可「换一批」重新生成
@@ -186,8 +186,8 @@
 | 样式 | TailwindCSS 4 + Shadcn/UI |
 | 动画 | Framer Motion + 自定义运动设计系统 |
 | 状态管理 | Zustand |
-| AI 模型 | 智谱 GLM-4 (OpenAI 兼容接口) |
-| 语音识别 | 智谱 GLM-ASR + MediaRecorder API |
+| AI 模型 | 火山引擎 Ark CodingPlan (OpenAI 兼容接口) |
+| 语音转文字 | 默认关闭，待接入火山引擎语音识别 |
 | 部署 | Vercel |
 
 ## 项目结构
@@ -201,13 +201,13 @@ name-agent/
 │   ├── flow/page.tsx             # 卡片交互流程页
 │   ├── result/page.tsx           # 结果页（探探式滑动卡片）
 │   └── api/
-│       ├── generate/route.ts     # AI 起名 API（GLM-4）
-│       └── transcribe/route.ts   # 语音转文字 API（GLM-ASR）
+│       ├── generate/route.ts     # AI 起名 API（Ark CodingPlan）
+│       └── transcribe/route.ts   # 语音转文字占位接口（默认关闭）
 ├── components/
 │   ├── VoiceButton.tsx           # 通用语音按钮组件
 │   ├── cards/
 │   │   ├── CardStack.tsx         # 卡片流程容器（进度条、导航、动画）
-│   │   ├── TextInputCard.tsx     # 文本输入卡片（带语音）
+│   │   ├── TextInputCard.tsx     # 文本输入卡片
 │   │   ├── SelectCard.tsx        # 单选卡片（弹簧动画）
 │   │   ├── MultiSelectCard.tsx   # 多选卡片（交错入场）
 │   │   ├── SliderCard.tsx        # 滑块卡片
@@ -215,7 +215,7 @@ name-agent/
 │   │   └── VoiceInputCard.tsx    # 语音输入卡片
 │   └── ui/                       # Shadcn/UI 组件
 ├── hooks/
-│   └── useVoiceInput.ts          # 语音录制 + ASR Hook
+│   └── useVoiceInput.ts          # 语音录制 Hook（默认关闭）
 ├── stores/
 │   └── flow-store.ts             # Zustand 全局状态
 ├── lib/
@@ -224,7 +224,7 @@ name-agent/
 │   ├── cards-config.ts           # 17 张卡片配置（6 组）
 │   ├── utils.ts                  # 工具函数
 │   └── ai/
-│       ├── client.ts             # 智谱 AI 客户端
+│       ├── client.ts             # Ark OpenAI 兼容客户端
 │       └── prompt.ts             # 结构化 Prompt 构建
 └── public/screenshots/           # 产品截图 + 架构图
 ```
@@ -234,7 +234,7 @@ name-agent/
 ### 环境要求
 
 - Node.js 18+
-- 智谱 AI API Key ([获取地址](https://open.bigmodel.cn))
+- 火山引擎 Ark CodingPlan API Key
 
 ### 本地运行
 
@@ -248,7 +248,7 @@ npm install
 
 # 配置环境变量
 cp .env.local.example .env.local
-# 编辑 .env.local，填入你的 API Key
+# 编辑 .env.local，填入 Ark API Key
 
 # 启动开发服务器
 npm run dev
@@ -258,7 +258,10 @@ npm run dev
 
 | 变量名 | 说明 |
 |--------|------|
-| `ZHIPU_API_KEY` | 智谱 AI API Key（必填） |
+| `ARK_API_KEY` | 火山引擎 Ark API Key（必填） |
+| `ARK_BASE_URL` | Ark OpenAI 兼容接口地址，默认 `https://ark.cn-beijing.volces.com/api/coding/v3` |
+| `ARK_CHAT_MODEL` | Ark CodingPlan 模型，默认 `doubao-seed-2-0-code-preview-260215` |
+| `NEXT_PUBLIC_VOICE_INPUT_ENABLED` | 是否启用语音输入入口，默认 `false` |
 
 ## License
 

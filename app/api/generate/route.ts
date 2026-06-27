@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAIClient } from "@/lib/ai/client";
+import { createArkClient, getArkChatModel } from "@/lib/ai/client";
 import { buildPrompt } from "@/lib/ai/prompt";
 import { UserContext, GeneratedName } from "@/lib/types";
 
@@ -42,7 +42,7 @@ function extractJsonArray(content: string): unknown[] | null {
 
 export async function POST(req: NextRequest) {
   try {
-    if (!process.env.ZHIPU_API_KEY) {
+    if (!process.env.ARK_API_KEY) {
       return NextResponse.json(
         { error: "服务未配置 API Key，请联系管理员" },
         { status: 500 }
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const client = getAIClient();
+    const client = createArkClient();
     const prompt = buildPrompt(context);
 
     const controller = new AbortController();
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     try {
       response = await client.chat.completions.create(
         {
-          model: "glm-4-flash",
+          model: getArkChatModel(),
           messages: [{ role: "user", content: prompt }],
           temperature: 0.8,
         },

@@ -231,6 +231,6 @@ export const CARDS: CardConfig[] = [
     title: "还有什么想告诉 AI 的？",
     description: "比如一个故事、一段回忆、一个特别的期望...",
     field: "freeText",
-    placeholder: "点击麦克风语音输入，或直接打字",
+    placeholder: "可以补充一段故事、回忆或特别的期望",
   },
 ];

@@ -1,8 +1,25 @@
 import OpenAI from "openai";
 
-export function getAIClient() {
+export const DEFAULT_ARK_BASE_URL =
+  "https://ark.cn-beijing.volces.com/api/coding/v3";
+export const DEFAULT_ARK_CHAT_MODEL = "doubao-seed-2-0-code-preview-260215";
+
+export function createArkClient() {
+  const apiKey = process.env.ARK_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("ARK_API_KEY is not configured");
+  }
+
   return new OpenAI({
-    apiKey: process.env.ZHIPU_API_KEY,
-    baseURL: "https://open.bigmodel.cn/api/paas/v4",
+    apiKey,
+    baseURL: (process.env.ARK_BASE_URL || DEFAULT_ARK_BASE_URL).replace(
+      /\/$/,
+      ""
+    ),
   });
+}
+
+export function getArkChatModel() {
+  return process.env.ARK_CHAT_MODEL || DEFAULT_ARK_CHAT_MODEL;
 }

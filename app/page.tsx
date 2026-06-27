@@ -189,7 +189,7 @@ export default function HomePage() {
         >
           {[
             { icon: "🎴", label: "卡片交互" },
-            { icon: "🎤", label: "语音输入" },
+            { icon: "✨", label: "文化寓意" },
             { icon: "🤖", label: "AI 理解" },
           ].map((f, index) => (
             <motion.div

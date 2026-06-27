@@ -2,6 +2,8 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 
+const VOICE_INPUT_ENABLED = process.env.NEXT_PUBLIC_VOICE_INPUT_ENABLED === "true";
+
 interface UseVoiceInputOptions {
   onResult?: (transcript: string) => void;
 }
@@ -22,7 +24,9 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
   // 在客户端检测支持情况
   useEffect(() => {
     setSupported(
-      !!navigator.mediaDevices?.getUserMedia && !!window.MediaRecorder
+      VOICE_INPUT_ENABLED &&
+        !!navigator.mediaDevices?.getUserMedia &&
+        !!window.MediaRecorder
     );
   }, []);
 
@@ -67,6 +71,12 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
   }, []);
 
   const start = useCallback(async () => {
+    if (!VOICE_INPUT_ENABLED) {
+      setTranscript("语音输入暂未启用");
+      safeTimeout(() => setTranscript(""), 3000);
+      return;
+    }
+
     // 防止重复启动录音
     if (mediaRecorderRef.current?.state === "recording") return;
 
