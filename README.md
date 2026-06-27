@@ -262,6 +262,45 @@ npm run dev
 | `ARK_BASE_URL` | Ark OpenAI 兼容接口地址，默认 `https://ark.cn-beijing.volces.com/api/coding/v3` |
 | `ARK_CHAT_MODEL` | Ark CodingPlan 模型，默认 `doubao-seed-2-0-code-preview-260215` |
 | `NEXT_PUBLIC_VOICE_INPUT_ENABLED` | 是否启用语音输入入口，默认 `false` |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase 项目 URL（可选，预留浏览器端配置） |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key（可选，预留浏览器端配置） |
+
+## 验证命令
+
+```bash
+npm run lint
+npm run type-check
+npm run test
+npm run build
+```
+
+- `npm run test` 当前执行 lint + TypeScript 类型检查，作为功能开发前后的快速质量门。
+- `npm run build` 用于部署前验证 Next.js 生产构建。
+
+## 部署说明
+
+详细部署步骤见 [`DEPLOYMENT.md`](DEPLOYMENT.md)。
+
+### Vercel
+
+- Production URL: `https://name.rxcloud.group`
+- Framework Preset: Next.js
+- Build Command: `npm run build`
+- Output: Vercel 自动识别 Next.js 输出
+- Required Environment Variables:
+  - `ARK_API_KEY`
+  - `ARK_BASE_URL`
+  - `ARK_CHAT_MODEL`
+- Optional Environment Variables:
+  - `NEXT_PUBLIC_VOICE_INPUT_ENABLED=false`
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+部署前确认:
+
+1. `.env.local` 只保留在本地，不提交。
+2. Vercel 项目环境变量已配置 `ARK_API_KEY`、`ARK_BASE_URL` 和 `ARK_CHAT_MODEL`。
+3. `npm run test` 和 `npm run build` 均通过。
 
 ## License
 

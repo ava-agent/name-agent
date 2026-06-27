@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "type-check": "tsc --noEmit",
+    "test": "npm run lint && npm run type-check"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
