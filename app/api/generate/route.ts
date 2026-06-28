@@ -42,19 +42,27 @@ function extractJsonArray(content: string): unknown[] | null {
 
 export async function POST(req: NextRequest) {
   try {
+    const body = (await req.json().catch(() => null)) as {
+      context?: Partial<UserContext>;
+    } | null;
+    const context = body?.context;
+
+    if (
+      !context ||
+      typeof context !== "object" ||
+      !context.surname ||
+      typeof context.surname !== "string"
+    ) {
+      return NextResponse.json(
+        { error: "姓氏不能为空" },
+        { status: 400 }
+      );
+    }
+
     if (!process.env.ARK_API_KEY) {
       return NextResponse.json(
         { error: "服务未配置 API Key，请联系管理员" },
         { status: 500 }
-      );
-    }
-
-    const { context } = (await req.json()) as { context: Partial<UserContext> };
-
-    if (!context.surname || typeof context.surname !== "string") {
-      return NextResponse.json(
-        { error: "姓氏不能为空" },
-        { status: 400 }
       );
     }
 
