@@ -15,6 +15,9 @@
 test-results/
 playwright-report/
 
+# generated root QA/product screenshots
+/*.png
+
 # next.js
 /.next/
 /out/
