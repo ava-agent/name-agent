@@ -37,7 +37,7 @@
 - **探探风格滑动** - 结果页采用 Tinder/探探式左右滑动卡片，右划收藏、左划跳过
 - **自由补充** - 支持通过文字补充故事、回忆和特别期望，作为起名上下文
 - **快速起名** - 首页输入姓氏 + 选择性别即可直接跳到 AI 生成，无需走完整卡片流程
-- **AI 生成** - 调用火山引擎 Ark CodingPlan 模型，结合 6 维用户上下文生成 5 个有文化内涵的名字
+- **AI 生成** - 调用火山引擎 Ark Agent Plan 模型，结合 6 维用户上下文生成 5 个有文化内涵的名字
 - **Apple 风格动效** - 完整的运动设计系统：iOS 缓动曲线、弹簧物理、交错入场、手势反馈
 - **移动端优先** - 针对手机端设计，暖色调 UI、毛玻璃卡片、流畅动画
 
@@ -56,7 +56,7 @@
 | **前端展示层** | 首页、卡片流程、结果页三大视图 | React 19 + Next.js 16 App Router + Framer Motion |
 | **状态管理层** | 全局状态、卡片配置、动画系统 | Zustand Store + localStorage 持久化 |
 | **API 网关层** | AI 起名接口、语音转写占位接口 | Next.js Serverless Functions |
-| **AI 模型层** | 文本生成 | 火山引擎 Ark CodingPlan (OpenAI 兼容接口) |
+| **AI 模型层** | 文本生成 | 火山引擎 Ark Agent Plan (OpenAI 兼容接口) |
 
 <details>
 <summary>旧版概览图</summary>
@@ -83,7 +83,7 @@
 
 1. **上下文收集** — 17 张卡片收集 `Partial<UserContext>`（17 个字段，6 组分类）
 2. **Prompt 构建** — `buildPrompt()` 将 6 维上下文通过模板插值注入结构化 Prompt，包含系统角色（"起名大师"）、6 段上下文、JSON Schema、5 条约束
-3. **LLM 推理** — 单次调用 Ark CodingPlan 模型（temperature: 0.8 提高创造性，AbortController 55s 超时）
+3. **LLM 推理** — 单次调用 Ark Agent Plan 模型（temperature: 0.8 提高创造性，AbortController 55s 超时）
 4. **输出解析** — 正则 `/\[\s*\{[\s\S]*?\}\s*\]/` 鲁棒提取 JSON，字段校验与归一化
 5. **结构化输出** — 生成 5 个 `GeneratedName`，每个含 6 维结构化信息
 
@@ -186,7 +186,7 @@
 | 样式 | TailwindCSS 4 + Shadcn/UI |
 | 动画 | Framer Motion + 自定义运动设计系统 |
 | 状态管理 | Zustand |
-| AI 模型 | 火山引擎 Ark CodingPlan (OpenAI 兼容接口) |
+| AI 模型 | 火山引擎 Ark Agent Plan (OpenAI 兼容接口) |
 | 语音转文字 | 默认关闭，待接入火山引擎语音识别 |
 | 部署 | Vercel |
 
@@ -201,7 +201,7 @@ name-agent/
 │   ├── flow/page.tsx             # 卡片交互流程页
 │   ├── result/page.tsx           # 结果页（探探式滑动卡片）
 │   └── api/
-│       ├── generate/route.ts     # AI 起名 API（Ark CodingPlan）
+│       ├── generate/route.ts     # AI 起名 API（Ark Agent Plan）
 │       └── transcribe/route.ts   # 语音转文字占位接口（默认关闭）
 ├── components/
 │   ├── VoiceButton.tsx           # 通用语音按钮组件
@@ -234,7 +234,7 @@ name-agent/
 ### 环境要求
 
 - Node.js 18+
-- 火山引擎 Ark CodingPlan API Key
+- 火山引擎 Ark Agent Plan API Key
 
 ### 本地运行
 
@@ -259,8 +259,8 @@ npm run dev
 | 变量名 | 说明 |
 |--------|------|
 | `ARK_API_KEY` | 火山引擎 Ark API Key（必填） |
-| `ARK_BASE_URL` | Ark OpenAI 兼容接口地址，默认 `https://ark.cn-beijing.volces.com/api/coding/v3` |
-| `ARK_CHAT_MODEL` | Ark CodingPlan 模型，默认 `doubao-seed-2-0-code-preview-260215` |
+| `ARK_BASE_URL` | Ark OpenAI 兼容接口地址，默认 `https://ark.cn-beijing.volces.com/api/plan/v3` |
+| `ARK_CHAT_MODEL` | Ark Agent Plan 模型，默认 `doubao-seed-2-0-code-preview-260215` |
 | `NEXT_PUBLIC_VOICE_INPUT_ENABLED` | 是否启用语音输入入口，默认 `false` |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase 项目 URL（可选，预留浏览器端配置） |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key（可选，预留浏览器端配置） |

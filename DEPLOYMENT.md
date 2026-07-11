@@ -9,9 +9,9 @@
 
 | Name | Required | Notes |
 |---|---|---|
-| `ARK_API_KEY` | Yes | Server-side Ark CodingPlan key for name generation. |
-| `ARK_BASE_URL` | Yes | Ark OpenAI-compatible CodingPlan base URL. |
-| `ARK_CHAT_MODEL` | Yes | Ark CodingPlan chat model. |
+| `ARK_API_KEY` | Yes | Server-side Ark Agent Plan key for name generation. |
+| `ARK_BASE_URL` | Yes | Ark Agent Plan OpenAI-compatible base URL. |
+| `ARK_CHAT_MODEL` | Yes | Ark Agent Plan chat model. |
 | `NEXT_PUBLIC_VOICE_INPUT_ENABLED` | No | Keep `false` until Volcengine speech recognition is implemented. |
 | `NEXT_PUBLIC_SUPABASE_URL` | No | Reserved public browser config. Keep empty when Supabase is not used. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | No | Reserved public browser config. Keep empty when Supabase is not used. |
